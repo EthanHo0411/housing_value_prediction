@@ -1,0 +1,4 @@
+* text=auto eol=lf
+# The supplementary files stay byte-identical to the course zip
+data/** -text
+*.pt binary
