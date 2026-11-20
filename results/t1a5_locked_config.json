@@ -1,0 +1,12 @@
+{
+  "config": {
+    "learning_rate": 0.001,
+    "epochs": 500,
+    "dropout": 0.1,
+    "loss": "l1",
+    "seed": 42
+  },
+  "selected_using": "minimum mean five-fold CV MAE",
+  "source_task": "1A4",
+  "selected_cv_mae": 157609.08071630934
+}

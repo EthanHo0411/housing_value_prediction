@@ -1,0 +1,16 @@
+{
+  "python": "3.12.14",
+  "platform": "macOS-26.6-arm64-arm-64bit",
+  "packages": {
+    "torch": "2.15.0",
+    "numpy": "2.5.5",
+    "matplotlib": "3.11.2"
+  },
+  "data_sha256": {
+    "mlp_1990.json": "a5c0e16316fb98b1fa2605bcdc413df29b54d5953ff598002fc4199b653ef367",
+    "housing_1990.csv": "4c4c10ebd8d73fe6ff3f301d9e2250c9750efbb298d9247d61042f10ed5677ca",
+    "housing_2020_train.csv": "c03837e080bce90f1a9ec5b96f9607ef449676f6138feb2e23b4f947667829e5",
+    "housing_2020_test.csv": "b5027e80ee86c7361211c50302d5640c77bf2b20d7c45818b5400a824c4bef0d",
+    "mlp_1990.pt": "2048b074d24e4ad9708632f49ac679c9efbee81b1af665dea19afe90831debf7"
+  }
+}

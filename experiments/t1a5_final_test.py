@@ -1,9 +1,8 @@
 import json
 import torch
 from housing.data import FEATURES, all_train, load_test
-from housing.train import train_full_batch, mae_dollars
-from housing.task1a import config_from_saved, setup, saved_scaler, export_history
-from housing.report import RESULTS, save_result
+from housing.train import Config, train_full_batch, mae_dollars, configure_runtime
+from housing.report import RESULTS, save_result, fit_result
 
 
 def main():
@@ -18,30 +17,30 @@ def main():
     candidates = [json.loads((RESULTS / f"{name}.json").read_text())
                   for name in ("t1a3_cv_dropout", "t1a4_l1_loss")]
     a3, a4 = candidates
-    comparable = ("learning_rate", "epochs", "dropout", "seed")
-    settings = lambda result: [{k: run["config"][k] for k in comparable} for run in result["runs"]]
+    comparable = ("lr", "epochs", "drop_rate", "seed")
+    settings = lambda result: [{k: Config.from_dict(run["config"]).to_dict()[k] for k in comparable} for run in result["runs"]]
     if settings(a3) != settings(a4):
         raise ValueError("A3/A4 settings differ: rerun A4 from the current A3 results")
     best = min(candidates, key=lambda result: result["selected_cv_mae"])
-    config = config_from_saved(best["selected"])
+    config = Config.from_dict(best["selected"])
     # Exclusive creation prevents concurrent or accidental repeated final tests.
     with lock.open("x") as file:
-        json.dump({"config": best["selected"], "selected_using": "minimum mean five-fold CV MAE",
+        json.dump({"config": config.to_dict(), "selected_using": "minimum mean five-fold CV MAE",
                    "source_task": best["task"], "selected_cv_mae": best["selected_cv_mae"]}, file, indent=2)
-    setup()
+    configure_runtime()
     rows = all_train()
     fit = train_full_batch(config, rows)
     model, scaler = fit.model, fit.std
-    training = export_history(config, fit.history, scaler, len(rows), 0)
+    training = fit_result(config, fit, len(rows))
     if training["status"] != "completed":
         raise RuntimeError(training["status"])
     checkpoint = RESULTS / "t1a5_model.pt"
-    torch.save({"state_dict": model.state_dict(), "config": best["selected"],
-                "scaler": saved_scaler(scaler), "features": list(FEATURES)}, checkpoint)
+    torch.save({"state_dict": model.state_dict(), "config": config.to_dict(),
+                "scaler": scaler.to_dict(), "features": list(FEATURES)}, checkpoint)
     # This is the sole test-set load/evaluation in all five experiments.
     test_rows = load_test()
     test_mae = mae_dollars(model, scaler, test_rows, batch=4096)
-    result = {"task": "1A5", "config": best["selected"], "selected_cv_mae": best["selected_cv_mae"],
+    result = {"task": "1A5", "config": config.to_dict(), "selected_cv_mae": best["selected_cv_mae"],
               "selected_cv_std": best["selected_cv_std"], "test_mae": test_mae, "n_test": len(test_rows),
               "training": training, "checkpoint": checkpoint.name}
     print(save_result("t1a5_final_test", result))

@@ -1,0 +1,36 @@
+{
+  "description": "Task 1A baseline selected by five-fold CV; fixed before final test evaluation.",
+  "config": {
+    "lr": 0.001,
+    "epochs": 500,
+    "drop_rate": 0.1,
+    "loss": "l1",
+    "seed": 42,
+    "init": "default"
+  },
+  "cross_validation": {
+    "fold_column": "fold",
+    "n_folds": 5,
+    "fold_seed_stride": 1,
+    "summary_ddof": 1,
+    "selection": "final-epoch mean validation MAE in dollars"
+  },
+  "preprocessing": {
+    "method": "standardisation",
+    "ddof": 0,
+    "fit_on": "training subset only"
+  },
+  "runtime": {
+    "device": "cpu",
+    "num_threads": 1,
+    "deterministic_algorithms": true,
+    "requirements": "requirements-local.txt"
+  },
+  "reference": {
+    "cv_mae": 157609.08071630934,
+    "cv_std": 11043.991491404728,
+    "mse_results": "results/t1a3_cv_dropout.json",
+    "l1_results": "results/t1a4_l1_loss.json",
+    "environment": "results/environment.json"
+  }
+}

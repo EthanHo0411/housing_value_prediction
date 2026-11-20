@@ -6,14 +6,16 @@ import argparse
 import json
 import tempfile
 import shutil
+import io
+from contextlib import redirect_stdout
 from pathlib import Path
 from unittest.mock import patch
 import numpy as np
 import torch
 from housing.data import Rows, all_train, fold_split
-from housing.train import Config, train_full_batch, predict_dollars
-from housing.task1a import (setup, run_fold, cross_validate_result,
-                            config_from_saved, load_checkpoint)
+from housing.train import Config, train_full_batch, predict_dollars, cross_validate, configure_runtime
+from housing.mlp import load_checkpoint
+from housing.report import fit_result, cv_result
 from experiments import t1a5_final_test
 
 
@@ -21,7 +23,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--reproduce', action='store_true')
     args = parser.parse_args()
-    setup()
+    configure_runtime()
     tr, va = fold_split(0)
     cfg = Config(lr=.001, epochs=4, drop_rate=.2, seed=42)
     a = train_full_batch(cfg, tr, va)
@@ -52,7 +54,8 @@ def main():
             return output / (name + '.json')
         with patch.object(t1a5_final_test, 'RESULTS', output), \
              patch.object(t1a5_final_test, 'load_test', return_value=va) as fake_test, \
-             patch.object(t1a5_final_test, 'save_result', side_effect=capture):
+             patch.object(t1a5_final_test, 'save_result', side_effect=capture), \
+             redirect_stdout(io.StringIO()):
             t1a5_final_test.main()
         assert fake_test.call_count == 1 and captured['n_test'] == 100
         restored, restored_std, _ = load_checkpoint(output / 't1a5_model.pt')
@@ -63,14 +66,16 @@ def main():
             recorded = json.loads(Path('results', name+'.json').read_text())
             gaps = []
             for old in recorded['runs']:
-                cfg = config_from_saved(old['config'])
+                cfg = Config.from_dict(old['config'])
                 if 'folds' in old:
-                    new = cross_validate_result(cfg)
+                    cv = cross_validate(cfg, fold_seed_stride=1)
+                    new = cv_result(cv, ddof=1)
                     np.testing.assert_allclose(new['fold_mae'],old['fold_mae'],atol=1.,rtol=0)
                     assert new['std_ddof']==old['std_ddof']==1
                     gaps.append(max(abs(np.array(new['fold_mae'])-old['fold_mae'])))
                 else:
-                    new = run_fold(cfg)
+                    fit = train_full_batch(cfg, tr, va)
+                    new = fit_result(cfg, fit, len(tr), len(va))
                     assert new['status']==old['status']
                     for key in ['train_mae','validation_mae']:
                         np.testing.assert_allclose(new['curves'][key], old['curves'][key], atol=1.,rtol=1e-6)

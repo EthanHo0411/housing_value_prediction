@@ -1,7 +1,6 @@
 import argparse
-from housing.train import Config
-from housing.task1a import cross_validate_result
-from housing.report import save_result
+from housing.train import Config, cross_validate, configure_runtime
+from housing.report import save_result, cv_result
 
 
 def main():
@@ -11,9 +10,12 @@ def main():
     parser.add_argument("--dropouts", nargs="+", type=float, default=[0, .1, .2, .3, .5])
     parser.add_argument("--seed", type=int, default=42)
     args = parser.parse_args()
+    configure_runtime()
     runs = []
     for dropout in args.dropouts:
-        result = cross_validate_result(Config(args.learning_rate, args.epochs, dropout, "mse", args.seed))
+        cfg = Config(args.learning_rate, args.epochs, dropout, "mse", args.seed)
+        cv = cross_validate(cfg, fold_seed_stride=1)
+        result = cv_result(cv, ddof=1)
         runs.append(result)
         print(f"dropout={dropout:g}: ${result['mean_mae']:,.2f} +/- ${result['std_mae']:,.2f}", flush=True)
     best = min(runs, key=lambda run: run["mean_mae"])

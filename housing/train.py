@@ -38,8 +38,26 @@ class Config:
         if self.epochs < 0:
             raise ValueError("epochs must be >= 0")
 
+    @classmethod
+    def from_dict(cls, values: dict) -> "Config":
+        """Read current settings and the two field aliases in historical results."""
+        values = dict(values)
+        for old, new in (("learning_rate", "lr"), ("dropout", "drop_rate")):
+            if old in values:
+                value = values.pop(old)
+                if new in values and values[new] != value:
+                    raise ValueError(f"Conflicting configuration fields: {old}, {new}")
+                values[new] = value
+        return cls(**values)
+
     def to_dict(self) -> dict[str, object]:
         return asdict(self)
+
+
+def configure_runtime():
+    """Use reproducible single-threaded CPU execution for experiments."""
+    torch.set_num_threads(1)
+    torch.use_deterministic_algorithms(True)
 
 
 ModelFn = Callable[[Config], nn.Module]

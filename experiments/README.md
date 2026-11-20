@@ -7,7 +7,7 @@ python -m experiments.t1a1_learning_rate
 ```
 
 A1–A5 are implemented; the Task 1B and Task 2 scripts below remain planned.
-A1–A5 use the shared training API through `housing/task1a.py` and save their existing JSON/CSV/PNG format.
+A1–A5 call `housing/train.py` directly and use `housing/report.py` for JSON/CSV/PNG output.
 See the root README for reproduction commands.
 
 | Script | Sub-task | What it does |

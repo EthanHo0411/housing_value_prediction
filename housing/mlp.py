@@ -78,3 +78,20 @@ def load_mlp_1990(drop_rate: float = 0.0, freeze: bool = False,
 def count_parameters(module: nn.Module) -> int:
     """Trainable parameters only (the spec's counts: 4,673 for the MLP, 17,089 with attention)."""
     return sum(p.numel() for p in module.parameters() if p.requires_grad)
+
+
+def load_checkpoint(path):
+    """Restore an MLP and its preprocessing; accept historical Sequential weights."""
+    from housing.train import Config
+    from housing.scaling import Standardiser
+    checkpoint = torch.load(path, map_location="cpu", weights_only=True)
+    cfg = Config.from_dict(checkpoint["config"])
+    model = MLP(cfg.drop_rate)
+    state = checkpoint["state_dict"]
+    if "0.weight" in state:
+        mapping = {"0": "fc1", "2": "fc2", "4": "out"}
+        state = {mapping[key.split(".")[0]] + "." + key.split(".")[1]: value
+                 for key, value in state.items()}
+    model.load_state_dict(state)
+    model.eval()
+    return model, Standardiser.from_dict(checkpoint["scaler"]), cfg
