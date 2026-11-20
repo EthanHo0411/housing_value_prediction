@@ -99,3 +99,7 @@ Every figure and table in the report, and the command that produces it (fill in 
 | Report item | Command |
 |---|---|
 | Self-checks | `python checks.py` |
+| 1B1 moment-matching table | `python -m experiments.t1b1_moment_matching` |
+| 1B2 fine-tune vs scratch figure and table | `python -m experiments.t1b2_finetune` |
+| 1B2 longer budget (2000 epochs) | `python -m experiments.t1b2_finetune --long` |
+| 1B2 settings grid | `python -m experiments.t1b2_finetune --sweep` |
