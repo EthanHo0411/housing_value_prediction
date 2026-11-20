@@ -6,7 +6,7 @@ a fresh model and fresh standardisation statistics in every cross-validation rou
 """
 import math
 from collections.abc import Callable
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass, field, replace
 
 import numpy as np
 import torch
@@ -147,10 +147,10 @@ class CVResult:
             return np.array([h.val_mae[-1] for h in self.histories])
         return np.array([h.val_mae[h.epoch.index(epoch)] for h in self.histories])
 
-    def summary(self, epoch: int | None = None) -> tuple[float, float]:
+    def summary(self, epoch: int | None = None, ddof: int = 0) -> tuple[float, float]:
         """CV MAE as (mean, standard deviation) over the folds, in dollars."""
         vals = self.val_at(epoch)
-        return float(vals.mean()), float(vals.std(ddof=0))
+        return float(vals.mean()), float(vals.std(ddof=ddof))
 
     def mean_curve(self, which: str = "val_mae") -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         """(epochs, mean, sd) of a curve over the folds, on the epochs all folds recorded."""
@@ -166,15 +166,18 @@ class CVResult:
 
 def cross_validate(cfg: Config, model_fn: ModelFn = default_model_fn,
                    std_fn: Callable[[Rows], Standardiser] | None = None,
-                   record_every: int = 1, eval_batch: int | None = None) -> CVResult:
+                   record_every: int = 1, eval_batch: int | None = None,
+                   fold_seed_stride: int = 0) -> CVResult:
     """Five-fold CV on the given folds: round k trains a fresh model on the other four folds.
 
+    fold_seed_stride defaults to 0 (same seed); Task 1A uses 1 to preserve its recorded runs.
     std_fn builds the statistics from each round's training rows (default: Standardiser.fit).
     """
     histories = []
     for k in range(N_FOLDS):
         train_rows, val_rows = fold_split(k)
         std = std_fn(train_rows) if std_fn else None
-        fit = train_full_batch(cfg, train_rows, val_rows, model_fn, std, record_every, eval_batch)
+        fold_cfg = replace(cfg, seed=cfg.seed + k * fold_seed_stride)
+        fit = train_full_batch(fold_cfg, train_rows, val_rows, model_fn, std, record_every, eval_batch)
         histories.append(fit.history)
     return CVResult(cfg, histories)

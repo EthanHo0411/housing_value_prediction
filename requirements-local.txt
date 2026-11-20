@@ -1,0 +1,5 @@
+# Versions used for local verification; Lab versions must be checked separately.
+torch==2.15.0
+numpy==2.5.5
+matplotlib==3.11.2
+pandas==3.0.6
