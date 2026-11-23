@@ -5,6 +5,7 @@
 | `housing/attention.py` | 2A1 network | done |
 | `experiments/t2a1_build_check.py` | 2A1 checks (~10 s; no test data, writes nothing) | done, all pass |
 | `experiments/t2a2_overfit.py` | 2A2 overfitting, learning rates 0.0001-0.003 | done |
+| `experiments/t2a3_dropout.py` | 2A3 dropout placements (P4's task, run with P4's `housing/attention_extras.py`) | done |
 | `experiments/t2a4_lora.py` | 2A4 LoRA, without and with dropout (uses P4's `housing/attention_extras.py`) | done |
 
 This branch only adds files, so it merges without conflicts. Two things are left for whoever
@@ -19,6 +20,8 @@ allow-list (they are tracked here with `git add -f`, so they are shared already)
 | 2A1 parameter count and checks | `python -m experiments.t2a1_build_check` | none | ~10 s |
 | 2A2 curves and table | `python -m experiments.t2a2_overfit` | `t2a2_overfit.json`, `.png`, `.csv`, `t2a2_overfit_overlay.png` | ~10 min (4 processes) |
 | 2A2 summary and figures from saved runs | `python -m experiments.t2a2_overfit --from-saved` | same files, no training | seconds |
+| 2A3 curves and table | `python -m experiments.t2a3_dropout` | `t2a3_dropout.json`, `.csv`, `t2a3_dropout_overlay.png` | ~17 min (6 processes) |
+| 2A3 table and figure from saved runs | `python -m experiments.t2a3_dropout --from-saved` | same files, no training | seconds |
 | 2A4 curves and table | `python -m experiments.t2a4_lora` | `t2a4_lora.json`, `.csv`, `t2a4_lora_overlay.png` | ~20 min (4 processes) |
 | 2A4 table and figure from saved runs | `python -m experiments.t2a4_lora --from-saved` | same files, no training | seconds |
 
@@ -41,6 +44,32 @@ allow-list (they are tracked here with `git add -f`, so they are shared already)
 At 0.001 and 0.003 the training MAE is noisy below about $15k (its lowest points: $5,548 at epoch 1980 and $3,272 at epoch 1570), so single final readings there are rough; the mean of the last 10 records is steadier.
 
 Same settings for the Task 1A MLP on fold 0 (lr 0.001, L1, no dropout, seed 42, from `results/t1a4_l1_loss.json`, recorded on another machine): best validation 144,914 at epoch 120; at epoch 500 validation 155,318, training 91,768 (attention: 187,143 and 31,738).
+
+## 2A3: dropout placements (fold 0, same machine and versions as 2A2)
+
+Same protocol as 2A2 at lr 0.001; only the dropout changes, in one place per run, at 0.1 and
+0.3. Hidden units: `Config(drop_rate)`, after both MLP hidden layers. Attention weights and
+weight entries: P4's `make_model_fn(attn_drop=...)`, `make_model_fn(weight_drop=...)`. Every run
+starts from the 2A2 initial weights. The row without dropout is the recorded 2A2 run.
+
+| Run | Best validation MAE (epoch) | Training MAE at best | Final validation MAE | Rise after best | Mean train MAE, last 10 records |
+|---|---|---|---|---|---|
+| No dropout (2A2) | 147,323 (120) | 116,700 | 200,922 | +53,599 | 7,933 |
+| Hidden 0.1 | 147,683 (90) | 134,077 | 225,544 | +77,861 | 9,360 |
+| Hidden 0.3 | 149,369 (100) | 138,093 | 255,724 | +106,354 | 7,249 |
+| Attention 0.1 | 146,920 (120) | 116,258 | 201,610 | +54,689 | 7,458 |
+| Attention 0.3 | 147,271 (120) | 117,410 | 205,482 | +58,211 | 7,351 |
+| Weights 0.1 | 145,542 (120) | 133,247 | 183,511 | +37,970 | 27,837 |
+| Weights 0.3 | 141,682 (170) | 133,303 | 168,143 | +26,460 | 43,771 |
+
+- Dropout on the weight entries (DropConnect) is the only placement that reduces overfitting:
+  the training MAE stays higher ($28k and $44k vs $8k) and the validation MAE rises less after
+  its best epoch ($38k and $26k vs $54k), more so at 0.3.
+- Dropout on the attention weights changes almost nothing: the curves overlap 2A2's.
+- Dropout on the hidden units does not regularise here: the training MAE still reaches about
+  $7k-$9k and the validation MAE rises more ($78k and $106k).
+- One seed, one fold: the best validation values differ by less than Task 1A's fold-to-fold s.d.
+  ($11,044), so the comparison rests on the curve shapes (rise after best, training MAE).
 
 ## 2A4: LoRA (fold 0, same machine and versions as 2A2)
 
