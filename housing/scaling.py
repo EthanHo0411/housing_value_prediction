@@ -53,3 +53,16 @@ class Standardiser:
     def dollars(self, f: torch.Tensor) -> np.ndarray:
         """Network output (N, 1), standardised -> prices in dollars (N,): sigma_y * f(x) + mu_y."""
         return self.sd_y * f.detach().double().reshape(-1).numpy() + self.mu_y
+
+    def to_dict(self):
+        return {"mu_x": self.mu_x.tolist(), "sd_x": self.sd_x.tolist(),
+                "mu_y": self.mu_y, "sd_y": self.sd_y}
+
+    @classmethod
+    def from_dict(cls, values):
+        """Restore statistics, including those in historical checkpoints."""
+        if "mu_x" in values:
+            return cls(np.array(values["mu_x"]), np.array(values["sd_x"]),
+                       values["mu_y"], values["sd_y"])
+        return cls(np.array(values["x_mean"]), np.array(values["x_std"]),
+                   values["y_mean"], values["y_std"])

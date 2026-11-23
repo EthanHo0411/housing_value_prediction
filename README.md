@@ -13,7 +13,6 @@ The original supplementary files are copied unchanged into `data/`.
 | `housing/data.py` | Fixed order of six features, supplied folds, 400/100 splits, and final test loading |
 | `housing/scaling.py` | Training-only means and standard deviations, input/price standardisation, and conversion back to dollars |
 | `housing/mlp.py` | 6→64→64→1 ReLU MLP, dropout in both hidden layers, and a 1990 model loader for later Task 1B work |
-| `housing/task1a.py` | Adapts shared training results to the recorded A1–A5 format and loads legacy checkpoints |
 | `housing/train.py` | PyTorch default initialisation, full-batch Adam, MSE/L1, five-fold CV, and dollar MAE |
 | `housing/report.py` | PNG curves and CSV tables generated from saved JSON results |
 | `checks.py` | Checks for leakage, splits, reproducibility, model structure, and evaluation calculations |
@@ -130,7 +129,7 @@ using the same fixed settings.
 Restore the model without reevaluating the test set:
 
 ```python
-from housing.task1a import load_checkpoint
+from housing.mlp import load_checkpoint
 from housing.train import predict_dollars
 
 model, scaler, config = load_checkpoint("results/t1a5_model.pt")
@@ -184,8 +183,11 @@ There is one `housing/`, `experiments/`, `data/`, and `results/` at the reposito
 The former nested `cw2/` has been merged into this structure.
 The shared `Rows`, `MLP`, `Config(lr=..., drop_rate=...)`, `Fit`, and `CVResult` APIs
 are preserved for Tasks 1B and 2. See [SHARED_API.md](SHARED_API.md) for usage.
-Task 1A experiments use `housing/task1a.py` to export the existing JSON format;
-it delegates all learning to the shared training functions.
+Each experiment calls `train_full_batch()` or `cross_validate()` in `housing/train.py` directly.
+`housing/report.py` only serialises completed results and renders figures; it never trains models.
+Checkpoint loading lives in `housing/mlp.py`, and scaler serialisation lives in `housing/scaling.py`.
+New results use the shared Config field names `lr` and `drop_rate`.
+Historical result files remain readable through `Config.from_dict()`.
 
 The shared CV defaults remain a constant seed across folds and ddof=0 for summary
 standard deviations. Task 1A explicitly uses `fold_seed_stride=1` and `summary(ddof=1)`
@@ -209,3 +211,37 @@ reproduced the recorded MAE curves/fold scores (maximum observed validation diff
 $0.000000 at six decimal places in the local environment). Both checkpoint formats
 and the A5 execution path were checked using training data as a stand-in; the real
 test set was not reevaluated.
+
+## Shared baseline and tracked reference results
+
+`configs/task1a_baseline.json` is the fixed Task 1A baseline for other group members:
+L1 loss, learning rate 0.001, dropout 0.1, 500 epochs, seed 42, and default initialisation.
+It records the CV seed stride, standard deviation convention, preprocessing, and runtime
+settings separately from the model training configuration. It was selected using CV,
+not the test score. When comparing later tasks, state any intentional changes to it.
+
+Load the baseline from the repository root:
+
+```python
+import json
+from pathlib import Path
+from housing.train import Config, configure_runtime, cross_validate
+
+baseline = json.loads(Path("configs/task1a_baseline.json").read_text())
+cfg = Config(**baseline["config"])
+configure_runtime()
+cv = cross_validate(cfg, fold_seed_stride=baseline["cross_validation"]["fold_seed_stride"])
+mean, sd = cv.summary(ddof=baseline["cross_validation"]["summary_ddof"])
+```
+
+The explicit Git allowlist includes the A1–A4 result JSON files (including the combined
+loss comparison), A5 result and lock JSON files, `environment.json`, and the small final
+model checkpoint. These support `checks_task1a.py --reproduce`, A4's input from A3,
+figure regeneration, and checkpoint checks on a fresh clone. The A5 result/lock are
+included so a fresh clone retains the completed final-evaluation state.
+PNG and CSV outputs remain ignored because they can be regenerated from the JSON.
+New experiment outputs are ignored unless explicitly added to the allowlist.
+
+Treat these tracked files as reference results. Rerunning experiments may modify them;
+review any changes before committing. To verify reproduction without replacing the
+reference outputs, run `python checks_task1a.py --reproduce`.

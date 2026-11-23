@@ -6,7 +6,7 @@ __pycache__/
 .venv/
 venv/
 
-# Outputs written by the experiment scripts (regenerate with the commands in README.md)
+# Generated outputs are ignored except for the explicit shared reference files below.
 results/*
 !results/.gitkeep
 
@@ -16,3 +16,14 @@ results/*
 .DS_Store
 
 .mplconfig/
+
+# Shared reference runs and checkpoint for reproducibility on a fresh clone.
+!results/environment.json
+!results/t1a1_learning_rate.json
+!results/t1a2_dropout.json
+!results/t1a3_cv_dropout.json
+!results/t1a4_l1_loss.json
+!results/t1a4_loss_comparison.json
+!results/t1a5_final_test.json
+!results/t1a5_locked_config.json
+!results/t1a5_model.pt

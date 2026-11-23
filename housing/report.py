@@ -85,6 +85,33 @@ import argparse
 import csv
 RESULTS = RESULTS_DIR
 
+def fit_result(cfg, fit, n_train, n_validation=0):
+    """Serialise an already completed fit; never run training or evaluation."""
+    h = fit.history
+    return {"config": cfg.to_dict(),
+            "status": "completed" if h.diverged_at is None else f"nonfinite_at_epoch_{h.diverged_at}",
+            "curves": history_result(h), "scaler": fit.std.to_dict(),
+            "n_train": n_train, "n_validation": n_validation}
+
+
+def history_result(h):
+    # A loss is associated with the update ending at the recorded epoch.
+    return {"epoch": h.epoch, "train_mae": h.train_mae,
+            "validation_mae": h.val_mae or [None] * len(h.epoch),
+            "standardised_loss": [None if e == 0 else h.loss[e-1] for e in h.epoch]}
+
+
+def cv_result(cv, ddof=1):
+    """Serialise completed cross-validation; no extra data loading or fitting."""
+    if any(h.diverged_at is not None for h in cv.histories):
+        raise ValueError("Cannot select a model from divergent CV runs")
+    mean, sd = cv.summary(ddof=ddof)
+    return {"config": cv.config.to_dict(),
+            "folds": [{"fold": k, "curves": history_result(h)} for k, h in enumerate(cv.histories)],
+            "fold_mae": cv.val_at().tolist(), "mean_mae": mean, "std_mae": sd,
+            "std_ddof": ddof, "selection_epoch": cv.config.epochs}
+
+
 def save_result(name, result):
     RESULTS.mkdir(parents=True, exist_ok=True)
     path = RESULTS / f"{name}.json"
@@ -100,13 +127,13 @@ def render(path):
     rows = []
     if not runs:
         if "test_mae" in result:
-            rows = [{"loss": result["config"]["loss"], "dropout": result["config"]["dropout"],
+            rows = [{"loss": result["config"]["loss"], "dropout": Config.from_dict(result["config"]).drop_rate,
                      "cv_mae": result["selected_cv_mae"], "test_mae": result["test_mae"]}]
     else:
         fig, axes = plt.subplots(len(runs), 1, figsize=(8, 2.8 * len(runs)), squeeze=False)
         for ax, run in zip(axes[:, 0], runs):
-            cfg = run["config"]
-            title = f"lr={cfg['learning_rate']:g}, dropout={cfg['dropout']:g}, loss={cfg['loss']}"
+            cfg = Config.from_dict(run["config"]).to_dict()
+            title = f"lr={cfg['lr']:g}, dropout={cfg['drop_rate']:g}, loss={cfg['loss']}"
             if "folds" in run:
                 epochs = run["folds"][0]["curves"]["epoch"]
                 for key, label in [("train_mae", "Training"), ("validation_mae", "Validation")]:
@@ -114,13 +141,13 @@ def render(path):
                     mean, std = values.mean(0), values.std(0, ddof=1)
                     line, = ax.plot(epochs, mean, label=label)
                     ax.fill_between(epochs, mean - std, mean + std, alpha=.15, color=line.get_color())
-                rows.append({"dropout": cfg["dropout"], "loss": cfg["loss"], "mean_mae": run["mean_mae"],
+                rows.append({"dropout": cfg["drop_rate"], "loss": cfg["loss"], "mean_mae": run["mean_mae"],
                              "std_mae": run["std_mae"], **{f"fold_{k}": v for k, v in enumerate(run["fold_mae"])}})
             else:
                 curves = run["curves"]
                 ax.plot(curves["epoch"], curves["train_mae"], label="Training")
                 ax.plot(curves["epoch"], curves["validation_mae"], label="Validation")
-                rows.append({"learning_rate": cfg["learning_rate"], "dropout": cfg["dropout"],
+                rows.append({"learning_rate": cfg["lr"], "dropout": cfg["drop_rate"],
                              "train_mae": curves["train_mae"][-1], "validation_mae": curves["validation_mae"][-1],
                              "status": run["status"]})
                 if result["task"] == "1A1":
