@@ -6,8 +6,8 @@ One thin script per sub-task: it sets `Config` values, calls `housing/`, saves i
 python -m experiments.t1a1_learning_rate
 ```
 
-A1–A5 are implemented; the Task 1B and Task 2 scripts below remain planned.
-A1–A5 call `housing/train.py` directly and use `housing/report.py` for JSON/CSV/PNG output.
+A1–A5 and 1B1–1B2 are implemented (1B: see [TASK_1B.md](../TASK_1B.md)); the Task 2 scripts below remain planned.
+A1–A5 use the shared training API through `housing/task1a.py` and save their existing JSON/CSV/PNG format.
 See the root README for reproduction commands.
 
 | Script | Sub-task | What it does |

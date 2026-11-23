@@ -10,7 +10,7 @@ Read this before writing code: most of it is about keeping your results comparab
 |---|---|
 | `housing/attention.py` | `CrossAttentionRegressor`, `attention_model_fn(cfg, d_k=64)`, `position_encoding()`, `source_parts()` |
 | `experiments/t2a1_build_check.py` | 23 checks: 17,089 parameters, token shapes, seeds and random state, gradients, batching (~10 s) |
-| `experiments/t2a2_overfit.py` | 2A2 and the Task 2 base learning rate (`results/t2a2_overfit.json`, key `selected`) |
+| `experiments/t2a2_overfit.py` | 2A2, four learning rates (`results/t2a2_overfit.json`, key `summary`) |
 
 The forward pass, in the spec's notation, with the method that computes each line:
 
