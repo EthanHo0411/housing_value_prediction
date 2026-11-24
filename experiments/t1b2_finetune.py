@@ -18,7 +18,7 @@ from dataclasses import replace
 import numpy as np
 
 from housing.report import RESULTS_DIR, format_mae, load_run, save_run
-from housing.task1a import setup
+from housing.train import configure_runtime
 from housing.train import Config, CVResult, cross_validate
 
 NAME = "t1b2_finetune"
@@ -103,7 +103,7 @@ if __name__ == "__main__":
     ap.add_argument("--long", action="store_true", help="main settings, 2000 epochs")
     ap.add_argument("--sweep", action="store_true", help="lr x dropout x loss grid")
     a = ap.parse_args()
-    setup()  # one thread, deterministic algorithms: as Task 1A
+    configure_runtime()  # one thread, deterministic algorithms: as Task 1A
     if a.sweep:
         sweep()
     elif a.long:

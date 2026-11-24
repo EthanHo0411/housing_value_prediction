@@ -11,10 +11,13 @@ def main():
     parser.add_argument("--seed", type=int, default=42)
     args = parser.parse_args()
     configure_runtime()
+    # Use the same split as A1.
     train, val = fold_split(0)
     runs = []
     for dropout in args.dropouts:
+        # Change dropout only, keeping the other settings fixed.
         cfg = Config(lr=args.learning_rate, drop_rate=dropout, seed=args.seed)
+        # The shared loop turns dropout off when measuring MAE.
         fit = train_full_batch(cfg, train, val)
         result = fit_result(cfg, fit, len(train), len(val))
         runs.append(result)

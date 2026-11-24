@@ -1,0 +1,79 @@
+{
+ "name": "t1b1_moment_matching",
+ "note": "1990 network, 2020 statistics per round",
+ "config": {
+  "lr": 0.0,
+  "epochs": 0,
+  "drop_rate": 0.0,
+  "loss": "mse",
+  "seed": 0,
+  "init": "1990"
+ },
+ "histories": [
+  {
+   "epoch": [
+    0
+   ],
+   "train_mae": [
+    202261.27531771243
+   ],
+   "val_mae": [
+    196304.7419774265
+   ],
+   "loss": [],
+   "diverged_at": null
+  },
+  {
+   "epoch": [
+    0
+   ],
+   "train_mae": [
+    208938.49739955436
+   ],
+   "val_mae": [
+    209273.25137155288
+   ],
+   "loss": [],
+   "diverged_at": null
+  },
+  {
+   "epoch": [
+    0
+   ],
+   "train_mae": [
+    207695.92563771878
+   ],
+   "val_mae": [
+    204657.53506845434
+   ],
+   "loss": [],
+   "diverged_at": null
+  },
+  {
+   "epoch": [
+    0
+   ],
+   "train_mae": [
+    218656.09647807042
+   ],
+   "val_mae": [
+    198211.86461673077
+   ],
+   "loss": [],
+   "diverged_at": null
+  },
+  {
+   "epoch": [
+    0
+   ],
+   "train_mae": [
+    212560.39414563298
+   ],
+   "val_mae": [
+    226798.55634529892
+   ],
+   "loss": [],
+   "diverged_at": null
+  }
+ ]
+}
