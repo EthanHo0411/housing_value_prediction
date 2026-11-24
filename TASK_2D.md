@@ -3,7 +3,7 @@
 | Script | Sub-task | Status |
 |---|---|---|
 | `experiments/t2d_ablation.py` | 2D ablation table, five-fold CV | done |
-| `experiments/t2d_ablation.py --final-test LABEL` | 2D final test (once) | **not run: waiting for the group to fix the row** |
+| `experiments/t2d_ablation.py --final-test LABEL` | 2D final test (once) | done: cross-attention + LoRA + weight dropout |
 
 ## Commands (from the repository root)
 
@@ -72,14 +72,24 @@ that this kind of dropout makes the cross-attention network overfit more, so the
 the MLP row. The spec requires the same settings in every row; a different shared setting would
 need every row, the MLP included, to be rerun.
 
-## Final test: group decision needed
+## Final test (run once)
 
-The spec: train the best combination on all 500 examples, evaluate once, compare with 1A's test
-MAE ($161,795.67). The best row by CV is the Task 1A MLP, whose test MAE already exists (1A5, the
-same configuration). Two options:
+The best row by CV is the Task 1A MLP, whose test MAE already exists (1A5, the same
+configuration). To compare Task 2 with Task 1 on the test set, the best cross-attention
+combination by CV was also trained on all 500 examples (same settings as its CV row) and evaluated
+once on the 21,282 test examples. The row was fixed by CV before the test set was read.
 
-1. Report that the best combination is the MLP; its test MAE is 1A5's. No new test evaluation.
-2. Also evaluate the best cross-attention combination once, to compare it with 1A on the test set:
-   `python -m experiments.t2d_ablation --final-test "cross-attention + LoRA + weight dropout"`.
+    python -m experiments.t2d_ablation --final-test "cross-attention + LoRA + weight dropout"
 
-Either way the choice is fixed by CV, not by the test set; run the final test only once.
+| Model | CV MAE | Test MAE |
+|---|---|---|
+| Task 1A MLP (1A5) | 157,609 +/- 11,044 | 161,795.67 |
+| cross-attention + LoRA + weight dropout (2D) | 170,499 +/- 12,642 | **159,747.08** |
+
+- On the test set the cross-attention model is $2,049 (1.3%) better than the Task 1A MLP, although
+  CV ranked it $12.9k worse (on all five folds). The two measurements disagree in direction and
+  the test difference is small, so the evidence is that cross-attention to the 1990 records is at
+  best on a par with the 2020-only MLP, not a clear improvement.
+- One difference between the two estimates: the final models train on all 500 examples, the CV
+  models on 400; the extra 100 examples may help the larger network more.
+- Written by the final test: `results/t2d_final_test.json`, `results/t2d_model.pt`.
