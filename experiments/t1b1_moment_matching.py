@@ -35,7 +35,9 @@ def main() -> None:
     t1a = RESULTS_DIR / "t1a4_l1_loss.json"
     if t1a.exists():
         sel = json.loads(t1a.read_text())
-        print(f"Task 1A selected ({sel['selected']['loss']}, dropout {sel['selected']['dropout']}): "
+                # from_dict reads both field spellings: old results say "dropout", a fresh 1A4 run says "drop_rate"
+        chosen = Config.from_dict(sel["selected"])
+        print(f"Task 1A selected ({chosen.loss}, dropout {chosen.drop_rate}): "
               f"${format_mae(sel['selected_cv_mae'], sel['selected_cv_std'])}")
 
 
