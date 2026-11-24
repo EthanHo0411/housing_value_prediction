@@ -34,7 +34,8 @@ None of these read the test set or write results.
 ## 3. Reproduce the results
 
 All results are already saved in `results/`. To **redraw a figure or table without training**,
-add `--from-saved` where the table says so (seconds). To **retrain**, run the command as shown.
+add `--from-saved` where the table says so (seconds). To **retrain**, run the command as shown (see the Task 1A5 note below).
+Run experiments in table order; for example, A4 needs the A3 results.
 Times are approximate, on a laptop CPU.
 
 | Task | Command | Writes to `results/` | Time |
@@ -57,6 +58,11 @@ Times are approximate, on a laptop CPU.
 | 2D ablation (CV) | `python -m experiments.t2d_ablation` (or `--from-saved`) | `t2d_ablation*` | ~40 min |
 | 2D final test | `python -m experiments.t2d_ablation --final-test "cross-attention + LoRA + weight dropout"` | `t2d_final_test.json`, `t2d_model.pt` | ~5 min |
 
+**Task 1A5:** The command displays the saved MAE if a result already exists.
+To retrain, use a separate repository copy. In that copy, remove
+`results/t1a5_final_test.json` and `results/t1a5_locked_config.json`, keep the
+A3/A4 results, and run the A5 command once. Do not tune settings on the test set.
+
 Task 1A figures and tables can also be redrawn from saved results, e.g.
 `python -m housing.report results/t1a1_learning_rate.json`.
 
@@ -71,10 +77,10 @@ More detail on each task (protocol, settings, full result tables) is in [TASK_1B
 - **Memory.** The Task 2 scripts train several runs in parallel; each worker needs about 0.5 GB.
   On a laptop with 8 GB of RAM, add `--processes 2` (to `t2a2_overfit`, `t2a3_dropout`,
   `t2a4_lora`, `t2b_transfer_init`, `t2c_variations`), or the runs can stall.
-- **Reproducibility.** Runs are deterministic on one machine (fixed seeds, one thread,
-  deterministic algorithms). Different machines or PyTorch builds give slightly different numbers
-  after long training: about \$100 after 500 epochs, up to about \$8k after 2000 epochs. The
-  conclusions do not change.
+- **Reproducibility.** Fixed seeds help repeat runs in the same environment.
+  Previous cross-machine comparisons differed by about \$100 after 500 epochs and
+  up to about \$8k after 2000 epochs, without changing those runs' conclusions.
+  These are observations, not guaranteed limits. Actual Lab execution still needs verification.
 - **Rerunning overwrites results.** An experiment rewrites its files in `results/`. Use
   `git diff results/` to compare with the saved ones, or `git checkout results/` to restore them.
 
