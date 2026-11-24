@@ -12,10 +12,7 @@
 | 2D ablation table and figure | `python -m experiments.t2d_ablation` | `t2d_ablation.json`, `.csv`, `.png` | ~40 min (2 processes) |
 | 2D table and figure from saved runs | `python -m experiments.t2d_ablation --from-saved` | same files, no training | seconds |
 | Smoke test | `python -m experiments.t2d_ablation --epochs 5` | `t2d_ablation_smoke.*` | ~1 min |
-| 2D final test (ONCE) | `python -m experiments.t2d_ablation --final-test "<row label>"` | `t2d_final_test.json`, `t2d_locked_config.json`, `t2d_model.pt` | ~5 min |
-
-The final test creates `t2d_locked_config.json` exclusively before training, as 1A5 does: a second
-run, or a run after an interruption, stops instead of evaluating the test set again.
+| 2D final test (ONCE) | `python -m experiments.t2d_ablation --final-test "<row label>"` | `t2d_final_test.json`, `t2d_model.pt` | ~5 min |
 
 ## Protocol
 
