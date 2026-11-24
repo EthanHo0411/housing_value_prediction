@@ -1,0 +1,47 @@
+{
+  "task": "2A3 diagnostics",
+  "validation_fold": 0,
+  "epochs": 2000,
+  "probe_attention_dropout": 0.5,
+  "provenance": "Recorded with the --diagnose option of an earlier script (same measurements, same settings and masks); experiments/t2a3_diagnostics.py is that code moved to its own file and has not been rerun. Rerunning it overwrites this file and should reproduce these values on this machine.",
+  "runs": [
+    {
+      "run": "no dropout",
+      "final_train_mae": 8000.032878208447,
+      "final_validation_mae": 208637.6660667672,
+      "train": {
+        "effective_records_median": 1007.5889282226562,
+        "max_attention_weight_median": 0.010550683364272118,
+        "context_change_under_attention_dropout_0.5": 0.17934853732585906,
+        "output_sd_from_h2": 0.4333343207836151,
+        "output_sd_from_c": 0.7161864638328552
+      },
+      "validation": {
+        "effective_records_median": 836.451416015625,
+        "max_attention_weight_median": 0.010686904191970825,
+        "context_change_under_attention_dropout_0.5": 0.11381646394729614,
+        "output_sd_from_h2": 0.48876991868019104,
+        "output_sd_from_c": 0.8898852467536926
+      }
+    },
+    {
+      "run": "hidden 0.5",
+      "final_train_mae": 7240.024630191986,
+      "final_validation_mae": 333081.33844425617,
+      "train": {
+        "effective_records_median": 1248.8157958984375,
+        "max_attention_weight_median": 0.00899297185242176,
+        "context_change_under_attention_dropout_0.5": 0.20258055925369262,
+        "output_sd_from_h2": 0.056341104209423065,
+        "output_sd_from_c": 0.9700583219528198
+      },
+      "validation": {
+        "effective_records_median": 779.8063354492188,
+        "max_attention_weight_median": 0.012994727119803429,
+        "context_change_under_attention_dropout_0.5": 0.22416596710681916,
+        "output_sd_from_h2": 0.05723368003964424,
+        "output_sd_from_c": 1.346423625946045
+      }
+    }
+  ]
+}
