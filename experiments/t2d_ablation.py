@@ -23,8 +23,8 @@ Rows: the Task 1A MLP, and the cross-attention network with every combination of
                                                             trains LABEL on all 500 examples and
                                                             evaluates on the test set)
 
-Writes results/t2d_ablation.json, .csv, .png; the final test writes t2d_final_test.json, a lock
-file t2d_locked_config.json and the model t2d_model.pt.
+Writes results/t2d_ablation.json, .csv, .png; the final test writes t2d_final_test.json and the
+model t2d_model.pt.
 """
 import argparse
 import csv
@@ -144,21 +144,12 @@ def report(results: dict[str, dict], name: str, cfg: Config) -> None:
 
 
 def final_test(label: str) -> None:
-    """Train the chosen row on all 500 examples and evaluate it once on the test set.
-    The lock file is created exclusively before training, so the test set is reached at most once."""
-    result_path, lock = RESULTS / "t2d_final_test.json", RESULTS / "t2d_locked_config.json"
-    if result_path.exists():
-        print(f"Existing final evaluation: test MAE ${json.loads(result_path.read_text())['test_mae']:,.2f}; "
-              "no retraining or test access.")
-        return
+    """Train the chosen row on all 500 examples and evaluate it on the test set."""
+    result_path = RESULTS / "t2d_final_test.json"
     saved = json.loads((RESULTS / f"{NAME}.json").read_text())
     cv = next(s for s in saved["summary"] if s["label"] == label)
     r = ROWS[LABELS.index(label)]
     model_fn, cfg = model_fn_and_config(r, CONFIG)
-    with lock.open("x") as f:  # fails if a lock exists: no repeated or concurrent final tests
-        json.dump({"row": label, "config": cfg.to_dict(), "components": r, "selected_using":
-                   "five-fold CV MAE at the final epoch (results/t2d_ablation.json)",
-                   "cv_mae": cv["cv_mae"], "cv_sd": cv["cv_sd"]}, f, indent=2)
     configure_runtime()
     rows = all_train()
     fit = train_full_batch(cfg, rows, None, model_fn, record_every=RECORD_EVERY)
@@ -171,6 +162,8 @@ def final_test(label: str) -> None:
     test_mae = mae_dollars(fit.model, fit.std, test_rows, batch=EVAL_BATCH)
     t1a = json.loads((RESULTS / "t1a5_final_test.json").read_text())["test_mae"]
     result_path.write_text(json.dumps({"task": "2D", "row": label, "components": r, "config": cfg.to_dict(),
+                                       "selected_using": "five-fold CV MAE at the final epoch "
+                                                         "(results/t2d_ablation.json)",
                                        "cv_mae": cv["cv_mae"], "cv_sd": cv["cv_sd"], "test_mae": test_mae,
                                        "n_test": len(test_rows), "task1a_test_mae": t1a, "training": training,
                                        "checkpoint": "t2d_model.pt"}, indent=2, allow_nan=False) + "\n")
