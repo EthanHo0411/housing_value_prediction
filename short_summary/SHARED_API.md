@@ -12,15 +12,9 @@ On a lab machine, use the lab environment the TAs run the code in:
 source /vol/lab/ml/mlvenv/bin/activate
 ```
 
-On your own machine, mirror its versions (Python 3.14, see `requirements.txt`):
-
-```bash
-python -m venv .venv
-```
-
-```bash
-.venv/bin/pip install -r requirements.txt
-```
+On your own machine, match the actual Lab Python and package versions in an
+isolated environment. See [ENVIRONMENT.md](ENVIRONMENT.md) for historical versions.
+Do not install into or upgrade the shared Lab environment.
 
 Then, from the repository root:
 
@@ -34,7 +28,7 @@ All checks must pass before you run experiments. They take about 20 s.
 
 ```
 README.md                  this file: setup, conventions, and the command behind every figure and table
-requirements.txt           library versions of the lab environment /vol/lab/ml/mlvenv
+short_summary/             supporting documentation and historical environment records
 checks.py                  [SHARED]  self-checks of the shared code
 data/                      [SHARED]  the supplementary files, unchanged
   housing_2020_train.csv             500 rows + fold column            -> all tasks

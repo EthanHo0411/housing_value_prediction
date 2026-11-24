@@ -33,7 +33,7 @@ allow-list (they are tracked here with `git add -f`, so they are shared already)
 - Training: Task 1A conventions (`configs/task1a_baseline.json`): L1 loss, seed 42, `configure_runtime()`; full-batch Adam; 2000 epochs; folds 1-4 train, fold 0 validation; no dropout; MAE recorded every 10 epochs.
 - Seeds: the MLP part starts identical to Task 1A's MLP for the same seed; `init="1990"` changes only the MLP weights, and leaves the attention weights and the random state (so the dropout masks) identical. Both are checked in `t2a1_build_check.py`.
 
-## Results (fold 0, recorded on Windows, CPU, Python 3.14.3, torch 2.14.1: the lab versions in `requirements.txt`)
+## Results (fold 0, recorded on Windows, CPU, Python 3.14.3, torch 2.14.1: versions recorded in `ENVIRONMENT.md`)
 
 | Learning rate | Best validation MAE (epoch) | Final validation MAE | Final train MAE | Mean train MAE, last 10 records |
 |---|---|---|---|---|

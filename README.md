@@ -12,13 +12,10 @@ On a lab machine, use the lab environment (the one the code is checked with):
 source /vol/lab/ml/mlvenv/bin/activate
 ```
 
-On your own machine, create an environment with the same versions (Python 3.14):
-
-```bash
-python -m venv .venv
-source .venv/bin/activate          # Windows: .venv\Scripts\Activate.ps1
-pip install -r requirements.txt
-```
+Use the preinstalled Lab packages without installing or upgrading them. On another
+machine, match the actual Lab Python and package versions in an isolated environment.
+Historical versions are recorded in
+[short_summary/ENVIRONMENT.md](short_summary/ENVIRONMENT.md).
 
 Run every command below **from the repository root**. Experiments are run as modules:
 `python -m experiments.<script>`.
@@ -63,8 +60,8 @@ Times are approximate, on a laptop CPU.
 Task 1A figures and tables can also be redrawn from saved results, e.g.
 `python -m housing.report results/t1a1_learning_rate.json`.
 
-More detail on each task (protocol, settings, full result tables) is in `TASK_1B.md`,
-`TASK_2A.md`, `TASK_2C.md` and `TASK_2D.md`.
+More detail on each task (protocol, settings, full result tables) is in [TASK_1B.md](short_summary/TASK_1B.md),
+[TASK_2A.md](short_summary/TASK_2A.md), [TASK_2C.md](short_summary/TASK_2C.md) and [TASK_2D.md](short_summary/TASK_2D.md).
 
 ## 4. Good to know
 
@@ -96,5 +93,6 @@ experiments/      one script per sub-task (commands above)
 data/             the supplied data and the 1990 network, unchanged
 results/          saved results (JSON), figures and models
 configs/          the Task 1A baseline configuration
+short_summary/    shared API, task notes and historical environment versions
 checks.py, checks_task1a.py   self-checks
 ```
