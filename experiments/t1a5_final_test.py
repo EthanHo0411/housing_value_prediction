@@ -9,7 +9,7 @@ def main():
     RESULTS.mkdir(parents=True, exist_ok=True)
     result_path = RESULTS / "t1a5_final_test.json"
     lock = RESULTS / "t1a5_locked_config.json"
-    # Existing results are reusable without another test-set access.
+    # If already evaluated, show the saved result instead of testing again.
     if result_path.exists():
         previous = json.loads(result_path.read_text())
         print(f"Existing final evaluation: test MAE=${previous['test_mae']:,.2f}; no retraining or test access.")
@@ -17,18 +17,21 @@ def main():
     candidates = [json.loads((RESULTS / f"{name}.json").read_text())
                   for name in ("t1a3_cv_dropout", "t1a4_l1_loss")]
     a3, a4 = candidates
+    # Check that MSE and L1 were compared under the same settings.
     comparable = ("lr", "epochs", "drop_rate", "seed")
     settings = lambda result: [{k: Config.from_dict(run["config"]).to_dict()[k] for k in comparable} for run in result["runs"]]
     if settings(a3) != settings(a4):
         raise ValueError("A3/A4 settings differ: rerun A4 from the current A3 results")
+    # Choose the loss and dropout from CV, before seeing the test data.
     best = min(candidates, key=lambda result: result["selected_cv_mae"])
     config = Config.from_dict(best["selected"])
-    # Exclusive creation prevents concurrent or accidental repeated final tests.
+    # Stop if another final run has already created this lock.
     with lock.open("x") as file:
         json.dump({"config": config.to_dict(), "selected_using": "minimum mean five-fold CV MAE",
                    "source_task": best["task"], "selected_cv_mae": best["selected_cv_mae"]}, file, indent=2)
     configure_runtime()
     rows = all_train()
+    # Refit the model and standardisation on all 500 training examples.
     fit = train_full_batch(config, rows)
     model, scaler = fit.model, fit.std
     training = fit_result(config, fit, len(rows))
@@ -37,7 +40,7 @@ def main():
     checkpoint = RESULTS / "t1a5_model.pt"
     torch.save({"state_dict": model.state_dict(), "config": config.to_dict(),
                 "scaler": scaler.to_dict(), "features": list(FEATURES)}, checkpoint)
-    # This is the sole test-set load/evaluation in all five experiments.
+    # Evaluate once in dollars, after the settings and model are fixed.
     test_rows = load_test()
     test_mae = mae_dollars(model, scaler, test_rows, batch=4096)
     result = {"task": "1A5", "config": config.to_dict(), "selected_cv_mae": best["selected_cv_mae"],
