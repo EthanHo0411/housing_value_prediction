@@ -1,0 +1,79 @@
+{
+ "name": "t1b1_moment_matching_unadapted",
+ "note": "1990 network, 1990 statistics",
+ "config": {
+  "lr": 0.0,
+  "epochs": 0,
+  "drop_rate": 0.0,
+  "loss": "mse",
+  "seed": 0,
+  "init": "1990"
+ },
+ "histories": [
+  {
+   "epoch": [
+    0
+   ],
+   "train_mae": [
+    278386.7933562816
+   ],
+   "val_mae": [
+    290189.3599157273
+   ],
+   "loss": [],
+   "diverged_at": null
+  },
+  {
+   "epoch": [
+    0
+   ],
+   "train_mae": [
+    278368.2539862821
+   ],
+   "val_mae": [
+    290263.517395725
+   ],
+   "loss": [],
+   "diverged_at": null
+  },
+  {
+   "epoch": [
+    0
+   ],
+   "train_mae": [
+    283895.98773828987
+   ],
+   "val_mae": [
+    268152.5823876942
+   ],
+   "loss": [],
+   "diverged_at": null
+  },
+  {
+   "epoch": [
+    0
+   ],
+   "train_mae": [
+    278259.3409210641
+   ],
+   "val_mae": [
+    290699.16965659725
+   ],
+   "loss": [],
+   "diverged_at": null
+  },
+  {
+   "epoch": [
+    0
+   ],
+   "train_mae": [
+    284826.15733893594
+   ],
+   "val_mae": [
+    264431.9039851098
+   ],
+   "loss": [],
+   "diverged_at": null
+  }
+ ]
+}
