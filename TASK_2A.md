@@ -22,6 +22,7 @@ allow-list (they are tracked here with `git add -f`, so they are shared already)
 | 2A2 summary and figures from saved runs | `python -m experiments.t2a2_overfit --from-saved` | same files, no training | seconds |
 | 2A3 curves and table | `python -m experiments.t2a3_dropout` | `t2a3_dropout.json`, `.csv`, `t2a3_dropout_overlay.png` | ~17 min (6 processes) |
 | 2A3 table and figure from saved runs | `python -m experiments.t2a3_dropout --from-saved` | same files, no training | seconds |
+| 2A3 diagnostics: attention spread, h2 / c output paths | `python -m experiments.t2a3_diagnostics` | `t2a3_diagnostics.json` | ~15 min (2 processes) |
 | 2A4 curves and table | `python -m experiments.t2a4_lora` | `t2a4_lora.json`, `.csv`, `t2a4_lora_overlay.png` | ~20 min (4 processes) |
 | 2A4 table and figure from saved runs | `python -m experiments.t2a4_lora --from-saved` | same files, no training | seconds |
 
@@ -70,6 +71,31 @@ starts from the 2A2 initial weights. The row without dropout is the recorded 2A2
   $7k-$9k and the validation MAE rises more ($78k and $106k).
 - One seed, one fold: the best validation values differ by less than Task 1A's fold-to-fold s.d.
   ($11,044), so the comparison rests on the curve shapes (rise after best, training MAE).
+
+### 2A3 diagnostics: why (`experiments/t2a3_diagnostics.py`)
+
+Two networks trained as above (lr 0.001, 2000 epochs, fold 0): no dropout, and hidden-unit
+dropout 0.5 (the strongest rate, where the effect is clearest). Measured in eval mode on the
+training (T) and validation (V) rows; `results/t2a3_diagnostics.json`.
+
+| Run | Effective 1990 records per row, 1 / sum a_ij^2 (T / V) | Largest a_ij (T / V) | Change in c under attention dropout 0.5 (T / V) | s.d. of w3.h2 (T / V) | s.d. of w3.c (T / V) |
+|---|---|---|---|---|---|
+| No dropout | 1,008 / 836 | 0.011 / 0.011 | 18% / 11% | 0.43 / 0.49 | 0.72 / 0.89 |
+| Hidden 0.5 | 1,249 / 780 | 0.009 / 0.013 | 20% / 22% | 0.06 / 0.06 | 0.97 / 1.35 |
+
+- **Attention dropout does almost nothing** because each row's attention is spread over about
+  800-1,250 records: dropping half of the a_ij (and doubling the rest) changes the context c by
+  only 11-22%, since c averages over many records.
+- **Hidden-unit dropout makes overfitting worse** because the network moves its prediction onto
+  the attention path: the output's spread from h2 collapses (0.49 -> 0.06 on the validation rows)
+  while the spread from c grows (0.89 -> 1.35). Dropout disrupts h2 but not c, so the undropped
+  attention path carries (and memorises) the fit. Consistent with 2A4, where hidden dropout did
+  help once LoRA restricted that path.
+- Recorded on a different machine from the 2A3 table above (same versions); floating-point
+  differences between machines grow over 2000 epochs (this machine's no-dropout run ends at
+  $208,638 validation MAE vs 2A2's $200,922), so compare the diagnostics within their own rows.
+  The values were recorded with an earlier version of the same code; the script itself has not
+  been rerun since it was moved to its own file (see `provenance` in the JSON).
 
 ## 2A4: LoRA (fold 0, same machine and versions as 2A2)
 
